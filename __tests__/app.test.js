@@ -1,7 +1,18 @@
 const endpointsJson = require("../endpoints.json");
-/* Set up your test imports here */
+const seed = require("../db/seeds/seed");
+const db = require("../db/connection");
+const testData = require("../db/data/test-data/index"); // Grabbing data from index.js storing all data.
+const app = require("../app");
+const request = require("supertest"); // Enables testinf
 
-/* Set up your beforeEach & afterAll functions here */
+// Before each test: seed the database with the collective data from index
+beforeEach(() => {
+  return seed(testData);
+});
+
+afterAll(() => {
+  return db.end();
+});
 
 describe("GET /api", () => {
   test("200: Responds with an object detailing the documentation for each endpoint", () => {
