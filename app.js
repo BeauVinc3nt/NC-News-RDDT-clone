@@ -3,22 +3,29 @@ const express = require("express");
 const {
   getEndpoints,
   getTopicsEndpoint,
+  getArticleID,
 } = require("./Controllers/controllers");
 const app = express(); // Creating  an instance of express to serve data from.
 
 // Forming url using endpoints + funcs.
 app.get("/api", getEndpoints);
 app.get("/api/topics", getTopicsEndpoint);
+app.get("/api/articles/:article_id", getArticleID);
 
-// Error handling middlewares goes here
 // This handler matches any endpoint req/ type of req - below endpoints to prevent error overriding  handling
-// app.all(("*", (req, res) => {
-//     res.status(404).send({error: "Endpoint not found"});
-// }));
+// Correct syntax:
+app.all("*", (req, res) => {
+  res.status(404).send({ error: "Endpoint not found" });
+});
 
+// Error handling middlewares
 app.use((err, req, res, next) => {
-  if (err.message === "Post not found!") {
-    res.status(404).send({ error: "Not found" });
+  if (err.message && err.status) {
+    // Takes in the error status + appropriate message for res status
+    res.status(err.status).send({ message: err.message });
+  } else {
+    // If either of the 2 error conditions are missing => send 500 error.
+    res.status(500).send({ message: "Internal Server Error" });
   }
 });
 module.exports = app;
