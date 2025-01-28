@@ -3,14 +3,17 @@ const express = require("express");
 const {
   getEndpoints,
   getTopicsEndpoint,
-  getArticleID,
+  getArticleIDEndpoint,
+  getAllArticlesEndpoint,
 } = require("./Controllers/controllers");
+
 const app = express(); // Creating  an instance of express to serve data from.
 
 // Forming url using endpoints + funcs.
 app.get("/api", getEndpoints);
 app.get("/api/topics", getTopicsEndpoint);
-app.get("/api/articles/:article_id", getArticleID);
+app.get("/api/articles/:article_id", getArticleIDEndpoint);
+app.get("/api/articles", getAllArticlesEndpoint);
 
 // This handler matches any endpoint req/ type of req - below endpoints to prevent error overriding  handling
 // Correct syntax:

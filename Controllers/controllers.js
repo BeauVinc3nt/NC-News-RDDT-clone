@@ -1,6 +1,10 @@
 const { fetchAllTopics } = require("../Models/topics.model");
-const { fetchArticleByID } = require("../Models/articles.model");
+const {
+  fetchArticleByID,
+  fetchAllArticles,
+} = require("../Models/articles.model");
 const endpointsJson = require("../endpoints.json");
+const articles = require("../db/data/test-data/articles");
 
 // Get hold of all controllers
 function getEndpoints(req, res) {
@@ -15,8 +19,17 @@ function getTopicsEndpoint(req, res, next) {
     .catch(next);
 }
 
-function getArticleID(req, res, next) {
+function getAllArticlesEndpoint(req, res, next) {
+  fetchAllArticles()
+    .then((articles) => {
+      res.status(200).send({ articles });
+    })
+    .catch(next);
+}
+
+function getArticleIDEndpoint(req, res, next) {
   const { article_id } = req.params;
+  // console.log({ articles }); TESTING ARTICLE DESC ORDER MAINTAINED:
 
   // If article isn't a number => retunr err message
   if (isNaN(article_id)) {
@@ -31,4 +44,9 @@ function getArticleID(req, res, next) {
 }
 
 // Exporting controller funcs for APIs
-module.exports = { getEndpoints, getTopicsEndpoint, getArticleID };
+module.exports = {
+  getEndpoints,
+  getTopicsEndpoint,
+  getArticleIDEndpoint,
+  getAllArticlesEndpoint,
+};

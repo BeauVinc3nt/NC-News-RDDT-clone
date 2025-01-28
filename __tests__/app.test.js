@@ -3,7 +3,7 @@ const seed = require("../db/seeds/seed");
 const db = require("../db/connection");
 const testData = require("../db/data/test-data/index"); // Grabbing data from index.js storing all data.
 const app = require("../app");
-const request = require("supertest"); // Enables testinf
+const request = require("supertest"); // Enables testing
 
 // Before each test: seed the database with the collective data from index
 beforeEach(() => {
@@ -78,6 +78,47 @@ describe("GET api/articles/:article_id", () => {
       .expect(404)
       .then(({ body }) => {
         expect(body.message).toBe("Article not found");
+      });
+  });
+});
+
+describe("GET /api/articles", () => {
+  test("200: responds with an arr of articles, sorted by date in descending order", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(Array.isArray(articles)).toBe(true);
+
+        // Checks each article to have all properties
+        articles.forEach((article) => {
+          expect(article).toHaveProperty("author");
+          expect(article).toHaveProperty("title");
+          expect(article).toHaveProperty("article_id");
+          expect(article).toHaveProperty("topic");
+          expect(article).toHaveProperty("created_at");
+          expect(article).toHaveProperty("votes");
+          expect(article).toHaveProperty("article_img_url");
+          expect(article).toHaveProperty("comment_count");
+          expect(article.body).toBeUndefined(); // body should not be present in objs
+        });
+      });
+  });
+
+  test("200: Articles should be sorted by date in descending order", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        // Looping through the articles and checking that prev article is greater than (posted later than) the current article.
+        for (let i = 1; i < articles.length; i++) {
+          const prevArticleTime = new Date(
+            articles[i - 1].created_at
+          ).getTime(); // Converts Date obj to timestamp (maintains a string)
+          const currArticleTime = new Date(articles[i].created_at).getTime();
+
+          expect(prevArticleTime).toBeGreaterThanOrEqual(currArticleTime);
+        }
       });
   });
 });

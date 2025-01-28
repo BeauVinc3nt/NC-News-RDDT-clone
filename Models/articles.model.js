@@ -12,4 +12,32 @@ function fetchArticleByID(article_id) {
     });
 }
 
-module.exports = { fetchArticleByID };
+function fetchAllArticles() {
+  // Selecting and joining comments to articles table
+  return db
+    .query(
+      `SELECT 
+      articles.author,
+      articles.title,
+      articles.article_id,
+      articles.topic,
+      articles.created_at,
+      articles.votes,
+      articles.article_img_url,
+      COUNT(comments.comment_id) AS comment_count
+    FROM articles
+    LEFT JOIN comments
+    ON articles.article_id = comments.article_id
+    GROUP BY articles.article_id
+    ORDER BY articles.created_at DESC;`
+    )
+    .then(({ rows }) => {
+      return rows.map((article) => ({
+        // Map into an arr
+        ...article,
+        comment_count: Number(article.comment_count),
+      }));
+    });
+}
+// Export funcs to controller
+module.exports = { fetchArticleByID, fetchAllArticles };
