@@ -10,6 +10,7 @@ beforeEach(() => {
   return seed(testData);
 });
 
+// After each test is executed: close the db connection
 afterAll(() => {
   return db.end();
 });
@@ -22,5 +23,28 @@ describe("GET /api", () => {
       .then(({ body: { endpoints } }) => {
         expect(endpoints).toEqual(endpointsJson);
       });
+  });
+});
+
+//
+describe("GET /api/topics", () => {
+  test("200: Responds with arr of objs with slugs & description properies", () => {
+    return request(app)
+      .get("/api/topics")
+      .expect(200)
+      .then(({ body: { topics } }) => {
+        expect(Array.isArray(topics)).toBe(true); // Check that topics value is an arr.
+        topics.forEach((topic) => {
+          // Checking each indidual topic to ensure property rules are consistent.
+          expect(topic).toHaveProperty("slug");
+          expect(topic).toHaveProperty("description");
+        });
+      });
+  });
+});
+
+describe('GET api/topics/author_id', () => {
+  test('should ', () => {
+    
   });
 });
