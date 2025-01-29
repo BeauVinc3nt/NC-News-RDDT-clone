@@ -1,10 +1,11 @@
 const { fetchAllTopics } = require("../Models/topics.model");
+const articles = require("../db/data/test-data/articles");
 const {
   fetchArticleByID,
   fetchAllArticles,
 } = require("../Models/articles.model");
+const { fetchCommentsByArticleId } = require("../Models/comments.model");
 const endpointsJson = require("../endpoints.json");
-const articles = require("../db/data/test-data/articles");
 
 // Get hold of all controllers
 function getEndpoints(req, res) {
@@ -43,10 +44,20 @@ function getArticleIDEndpoint(req, res, next) {
     .catch(next);
 }
 
+// Finding an article's comments given it's ID. If no article found => reject promise + return appropriate err message.
+function getArticleIDCommentsEndpoint(req, res, next) {
+  const { article_id } = req.params;
+  fetchCommentsByArticleId(article_id)
+    .then((comments) => {
+      res.status(200).send({ comments }); // If comments are found => success status + return comments.
+    })
+    .catch(next);
+}
 // Exporting controller funcs for APIs
 module.exports = {
   getEndpoints,
   getTopicsEndpoint,
   getArticleIDEndpoint,
   getAllArticlesEndpoint,
+  getArticleIDCommentsEndpoint,
 };

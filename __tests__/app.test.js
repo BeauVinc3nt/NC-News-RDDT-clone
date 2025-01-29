@@ -122,3 +122,50 @@ describe("GET /api/articles", () => {
       });
   });
 });
+
+describe("GET /api/articles/article_id/comments", () => {
+  test("200: returns an arr of comments from the appropriate article", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then(({ body }) => {
+        const { comments } = body;
+        expect(Array.isArray(comments)).toBe(true); // Checking that comments are stored as an arr
+        comments.forEach((comment) => {
+          expect(comment).toMatchObject({
+            // Checking comment fromat is correct
+            comment_id: expect.any(Number),
+            votes: expect.any(Number),
+            created_at: expect.any(String),
+            author: expect.any(String),
+            article_id: 1,
+          });
+        });
+      });
+  });
+  // Ordering the comments in time order
+  test("200: comments should be served with most recent first ", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        for (let i = 1; i < comments.length; i++) {
+          const prevCommentTime = new Date(
+            comments[i - 1].created_at
+          ).getTime(); // Converts Date obj to timestamp (maintains a string)
+          const currCommentTime = new Date(comments[i].created_at).getTime();
+
+          expect(prevCommentTime).toBeGreaterThanOrEqual(currCommentTime);
+        }
+      });
+  });
+  // Testing an article with no comments.
+  test("200: Should return empty arr of comments for an article with no comments ", () => {
+    return request(app)
+      .get("/api/articles/2/comments")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments).toEqual([]);
+      });
+  });
+});
