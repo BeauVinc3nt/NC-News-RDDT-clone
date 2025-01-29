@@ -1,10 +1,12 @@
 const { fetchAllTopics } = require("../Models/topics.model");
-const articles = require("../db/data/test-data/articles");
 const {
   fetchArticleByID,
   fetchAllArticles,
 } = require("../Models/articles.model");
-const { fetchCommentsByArticleId } = require("../Models/comments.model");
+const {
+  fetchCommentsByArticleId,
+  insertCommentToArticleID,
+} = require("../Models/comments.model");
 const endpointsJson = require("../endpoints.json");
 
 // Get hold of all controllers
@@ -53,6 +55,27 @@ function getArticleIDCommentsEndpoint(req, res, next) {
     })
     .catch(next);
 }
+
+function postCommentToArticleEndpoint(req, res, next) {
+  const { article_id } = req.params;
+  const { username, body } = req.body;
+  // If params are given => send comment obj
+  insertCommentToArticleID(article_id, username, body)
+    .then((article) => {
+      // Checking username & body exist => reject
+      if (!username || !body) {
+        return res
+          .status(400)
+          .send({ message: "Missing fields username and body required!" });
+      }
+      return insertCommentToArticleID(article_id, username, body);
+    })
+    .then((comment) => {
+      res.status(201).send({ comment });
+    })
+    .catch(next);
+}
+
 // Exporting controller funcs for APIs
 module.exports = {
   getEndpoints,
@@ -60,4 +83,5 @@ module.exports = {
   getArticleIDEndpoint,
   getAllArticlesEndpoint,
   getArticleIDCommentsEndpoint,
+  postCommentToArticleEndpoint,
 };
