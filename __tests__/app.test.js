@@ -133,7 +133,7 @@ describe("GET /api/articles/article_id/comments", () => {
         expect(Array.isArray(comments)).toBe(true); // Checking that comments are stored as an arr
         comments.forEach((comment) => {
           expect(comment).toMatchObject({
-            // Checking comment fromat is correct
+            // Checking comment format is correct
             comment_id: expect.any(Number),
             votes: expect.any(Number),
             created_at: expect.any(String),
@@ -166,6 +166,75 @@ describe("GET /api/articles/article_id/comments", () => {
       .expect(200)
       .then(({ body }) => {
         expect(body.comments).toEqual([]);
+      });
+  });
+});
+describe("POST: /api/articles/article_id/comments", () => {
+  test("201: Responds with the new created comment", () => {
+    const newComment = {
+      username: "butter_bridge",
+      body: "This is a new comment!",
+    };
+
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(newComment)
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.comment).toMatchObject({
+          comment_id: expect.any(Number),
+          votes: 0,
+          created_at: expect.any(String),
+          author: "butter_bridge",
+          body: "This is a new comment!",
+          article_id: 1,
+        });
+      });
+  });
+  test("400: Missing fields username and body required", () => {
+    const newComment = {
+      username: "butter_bridge",
+    };
+
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(newComment)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe(
+          "Missing fields: username and body are required!"
+        );
+      });
+  });
+
+  test("404: Article not found", () => {
+    const newComment = {
+      // Creating a comment obj
+      username: "butter_bridge",
+      body: "This comment should fail because the article doesn't exist.",
+    };
+
+    return request(app)
+      .post("/api/articles/999/comments") // Assuming article 999 does not exist
+      .send(newComment)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Article not found");
+      });
+  });
+
+  test("404: User not found", () => {
+    const newComment = {
+      username: "nonexistent_user", // Assuming this user doesn't exist
+      body: "This comment should fail because the user doesn't exist.",
+    };
+
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send(newComment)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("User not found");
       });
   });
 });
