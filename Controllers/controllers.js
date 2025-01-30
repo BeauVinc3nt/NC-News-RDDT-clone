@@ -2,9 +2,10 @@ const { fetchAllTopics } = require("../Models/topics.model");
 const {
   fetchArticleByID,
   fetchAllArticles,
+  updateArticleVoteCount,
 } = require("../Models/articles.model");
 const {
-  fetchCommentsByArticleId,
+  fetchCommentsByArticleID,
   insertCommentToArticleID,
 } = require("../Models/comments.model");
 const endpointsJson = require("../endpoints.json");
@@ -34,8 +35,8 @@ function getArticleIDEndpoint(req, res, next) {
   const { article_id } = req.params;
   // console.log({ articles }); TESTING ARTICLE DESC ORDER MAINTAINED:
 
-  // If article isn't a number => retunr err message
-  if (isNaN(article_id)) {
+  // If article isn't a number => return error message
+  if (isNaN(Number(article_id))) {
     return res.status(400).send({ message: "Invalid article ID" });
   }
 
@@ -49,7 +50,7 @@ function getArticleIDEndpoint(req, res, next) {
 // Finding an article's comments given it's ID. If no article found => reject promise + return appropriate err message.
 function getArticleIDCommentsEndpoint(req, res, next) {
   const { article_id } = req.params;
-  fetchCommentsByArticleId(article_id)
+  fetchCommentsByArticleID(article_id)
     .then((comments) => {
       res.status(200).send({ comments }); // If comments are found => success status + return comments.
     })
@@ -76,6 +77,35 @@ function postCommentToArticleEndpoint(req, res, next) {
     .catch(next);
 }
 
+function patchArticleIDEndpoint(req, res, next) {
+  const { article_id } = req.params;
+  const { inc_votes } = req.body;
+
+  // Checking article exists + checking vote count is a number
+  if (!Number.isInteger(Number(article_id))) {
+    return res.status(400).send({ message: "Invalid article ID" });
+  }
+
+  if (inc_votes === undefined) {
+    return res
+      .status(400)
+      .send({ message: "Bad request: inc_votes is required" });
+  }
+
+  if (typeof inc_votes !== "number") {
+    return res
+      .status(400)
+      .send({ message: "Bad request: inc_votes must be a number" });
+  }
+  updateArticleVoteCount(article_id, inc_votes)
+    .then((updatedArticle) => {
+      if (!updatedArticle) {
+        return res.status(404).send({ message: "Article not found" });
+      }
+      res.status(200).send({ article: updatedArticle }); // If successful => send update to article
+    })
+    .catch(next);
+}
 // Exporting controller funcs for APIs
 module.exports = {
   getEndpoints,
@@ -84,4 +114,5 @@ module.exports = {
   getAllArticlesEndpoint,
   getArticleIDCommentsEndpoint,
   postCommentToArticleEndpoint,
+  patchArticleIDEndpoint,
 };

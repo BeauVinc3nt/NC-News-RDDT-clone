@@ -1,6 +1,6 @@
 const db = require("../db/connection");
 
-function fetchCommentsByArticleId(article_id) {
+function fetchCommentsByArticleID(article_id) {
   return db
     .query("SELECT * FROM articles WHERE article_id = $1", [article_id])
     .then((foundArticle) => {
@@ -54,4 +54,4 @@ function insertCommentToArticleID(article_id, username, body) {
       return articleComment.rows[0]; // Return created comment
     });
 }
-module.exports = { fetchCommentsByArticleId, insertCommentToArticleID };
+module.exports = { fetchCommentsByArticleID, insertCommentToArticleID };
