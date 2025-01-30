@@ -1,8 +1,8 @@
 const endpointsJson = require("../endpoints.json");
-const seed = require("../db/seeds/seed");
-const db = require("../db/connection");
-const testData = require("../db/data/test-data/index"); // Grabbing data from index.js storing all data.
-const app = require("../app");
+const seed = require("../db/seeds/seed.js");
+const db = require("../db/connection.js");
+const testData = require("../db/data/test-data/index.js"); // Grabbing data from index.js storing all data.
+const app = require("../app.js");
 const request = require("supertest"); // Enables testing
 
 // Before each test: seed the database with the collective data from index
@@ -27,14 +27,14 @@ describe("GET /api", () => {
 });
 
 describe("GET /api/topics", () => {
-  test("200: Responds with arr of objs with slugs & description properies", () => {
+  test("200: Responds with an array of objects with slugs & description properties", () => {
     return request(app)
       .get("/api/topics")
       .expect(200)
       .then(({ body }) => {
-        expect(Array.isArray(body.topics)).toBe(true); // Check that topics value is an arr.
+        expect(Array.isArray(body.topics)).toBe(true); // Check that topics value is an array.
         body.topics.forEach((topic) => {
-          // Checking each indidual topic to ensure property rules are consistent.
+          // Checking each individual topic to ensure property rules are consistent.
           expect(topic).toHaveProperty("slug");
           expect(topic).toHaveProperty("description");
         });
@@ -42,14 +42,12 @@ describe("GET /api/topics", () => {
   });
 });
 
-//"/api/articles/?article_id"
-describe("GET api/articles/:article_id", () => {
-  test("200: Responds with an article by it's article id ", () => {
+describe("GET /api/articles/:article_id", () => {
+  test("200: Responds with an article by its article id", () => {
     return request(app)
       .get("/api/articles/1")
       .expect(200)
       .then(({ body: { article } }) => {
-        // Checking fomratting of article obj reaches requirements.
         expect(article).toMatchObject({
           author: expect.any(String),
           title: expect.any(String),
@@ -62,10 +60,10 @@ describe("GET api/articles/:article_id", () => {
         });
       });
   });
-  // ERROR HANDLING
+
   test("400: Responds with error for an invalid article_id", () => {
     return request(app)
-      .get("/api/articles/not-a-number") // Testing with a data type that is no the expected Number
+      .get("/api/articles/not-a-number") // Testing with a data type that is not the expected number
       .expect(400)
       .then(({ body }) => {
         expect(body.message).toBe("Invalid article ID");
@@ -83,7 +81,7 @@ describe("GET api/articles/:article_id", () => {
 });
 
 describe("GET /api/articles", () => {
-  test("200: responds with an arr of articles, sorted by date in descending order", () => {
+  test("200: responds with an array of articles, sorted by date in descending order", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
@@ -100,7 +98,7 @@ describe("GET /api/articles", () => {
           expect(article).toHaveProperty("votes");
           expect(article).toHaveProperty("article_img_url");
           expect(article).toHaveProperty("comment_count");
-          expect(article.body).toBeUndefined(); // body should not be present in objs
+          expect(article.body).toBeUndefined(); // body should not be present in objects
         });
       });
   });
@@ -110,11 +108,10 @@ describe("GET /api/articles", () => {
       .get("/api/articles")
       .expect(200)
       .then(({ body: { articles } }) => {
-        // Looping through the articles and checking that prev article is greater than (posted later than) the current article.
         for (let i = 1; i < articles.length; i++) {
           const prevArticleTime = new Date(
             articles[i - 1].created_at
-          ).getTime(); // Converts Date obj to timestamp (maintains a string)
+          ).getTime(); // Converts Date object to timestamp
           const currArticleTime = new Date(articles[i].created_at).getTime();
 
           expect(prevArticleTime).toBeGreaterThanOrEqual(currArticleTime);
@@ -123,17 +120,16 @@ describe("GET /api/articles", () => {
   });
 });
 
-describe("GET /api/articles/article_id/comments", () => {
-  test("200: returns an arr of comments from the appropriate article", () => {
+describe("GET /api/articles/:article_id/comments", () => {
+  test("200: returns an array of comments from the appropriate article", () => {
     return request(app)
       .get("/api/articles/1/comments")
       .expect(200)
       .then(({ body }) => {
         const { comments } = body;
-        expect(Array.isArray(comments)).toBe(true); // Checking that comments are stored as an arr
+        expect(Array.isArray(comments)).toBe(true); // Checking that comments are stored as an array
         comments.forEach((comment) => {
           expect(comment).toMatchObject({
-            // Checking comment format is correct
             comment_id: expect.any(Number),
             votes: expect.any(Number),
             created_at: expect.any(String),
@@ -143,8 +139,8 @@ describe("GET /api/articles/article_id/comments", () => {
         });
       });
   });
-  // Ordering the comments in time order
-  test("200: comments should be served with most recent first ", () => {
+
+  test("200: comments should be served with the most recent first", () => {
     return request(app)
       .get("/api/articles/1/comments")
       .expect(200)
@@ -152,15 +148,15 @@ describe("GET /api/articles/article_id/comments", () => {
         for (let i = 1; i < comments.length; i++) {
           const prevCommentTime = new Date(
             comments[i - 1].created_at
-          ).getTime(); // Converts Date obj to timestamp (maintains a string)
+          ).getTime(); // Converts Date object to timestamp
           const currCommentTime = new Date(comments[i].created_at).getTime();
 
           expect(prevCommentTime).toBeGreaterThanOrEqual(currCommentTime);
         }
       });
   });
-  // Testing an article with no comments.
-  test("200: Should return empty arr of comments for an article with no comments ", () => {
+
+  test("200: Should return an empty array of comments for an article with no comments", () => {
     return request(app)
       .get("/api/articles/2/comments")
       .expect(200)
@@ -169,8 +165,9 @@ describe("GET /api/articles/article_id/comments", () => {
       });
   });
 });
-describe("POST: /api/articles/article_id/comments", () => {
-  test("201: Responds with the new created comment", () => {
+
+describe("POST /api/articles/:article_id/comments", () => {
+  test("201: Responds with the newly created comment", () => {
     const newComment = {
       username: "butter_bridge",
       body: "This is a new comment!",
@@ -191,6 +188,7 @@ describe("POST: /api/articles/article_id/comments", () => {
         });
       });
   });
+
   test("400: Missing fields username and body required", () => {
     const newComment = {
       username: "butter_bridge",
@@ -209,7 +207,6 @@ describe("POST: /api/articles/article_id/comments", () => {
 
   test("404: Article not found", () => {
     const newComment = {
-      // Creating a comment obj
       username: "butter_bridge",
       body: "This comment should fail because the article doesn't exist.",
     };
@@ -235,6 +232,61 @@ describe("POST: /api/articles/article_id/comments", () => {
       .expect(404)
       .then(({ body }) => {
         expect(body.message).toBe("User not found");
+      });
+  });
+});
+
+describe("PATCH /api/articles/:article_id", () => {
+  test("200: updates article votes when valid params are passed (valid ID + vote count is a number)", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: 1 })
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.article).toMatchObject({
+          article_id: 1,
+          votes: expect.any(Number),
+        });
+      });
+  });
+
+  test("400: responds with error when inc_votes is missing", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({})
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Bad request: inc_votes is required");
+      });
+  });
+
+  test("400: responds with error when inc_votes is not a number", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({ inc_votes: "ten" })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Bad request: inc_votes must be a number");
+      });
+  });
+
+  test("400: responds with error when article_id is not a number", () => {
+    return request(app)
+      .patch("/api/articles/not-a-number")
+      .send({ inc_votes: 1 })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid article ID");
+      });
+  });
+
+  test("404: Non-existent article_id", () => {
+    return request(app)
+      .patch("/api/articles/9999")
+      .send({ inc_votes: 1 })
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Article not found");
       });
   });
 });
