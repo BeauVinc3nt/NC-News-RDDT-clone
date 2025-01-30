@@ -237,7 +237,7 @@ describe("POST /api/articles/:article_id/comments", () => {
 });
 
 describe("PATCH /api/articles/:article_id", () => {
-  test("200: updates article votes when valid params are passed (valid ID + vote count is a number)", () => {
+  test("200: Updates article votes when valid params are passed (valid ID + vote count is a number)", () => {
     return request(app)
       .patch("/api/articles/1")
       .send({ inc_votes: 1 })
@@ -250,7 +250,7 @@ describe("PATCH /api/articles/:article_id", () => {
       });
   });
 
-  test("400: responds with error when inc_votes is missing", () => {
+  test("400: Responds with error when inc_votes is missing", () => {
     return request(app)
       .patch("/api/articles/1")
       .send({})
@@ -260,7 +260,7 @@ describe("PATCH /api/articles/:article_id", () => {
       });
   });
 
-  test("400: responds with error when inc_votes is not a number", () => {
+  test("400: Responds with error when inc_votes is not a number", () => {
     return request(app)
       .patch("/api/articles/1")
       .send({ inc_votes: "ten" })
@@ -270,7 +270,7 @@ describe("PATCH /api/articles/:article_id", () => {
       });
   });
 
-  test("400: responds with error when article_id is not a number", () => {
+  test("400: Responds with error when article_id is not a number", () => {
     return request(app)
       .patch("/api/articles/not-a-number")
       .send({ inc_votes: 1 })
@@ -287,6 +287,55 @@ describe("PATCH /api/articles/:article_id", () => {
       .expect(404)
       .then(({ body }) => {
         expect(body.message).toBe("Article not found");
+      });
+  });
+});
+describe("DELETE /api/comments/:comment_id", () => {
+  test("204: deletes the specified comment and returns no content", () => {
+    return request(app)
+      .delete("/api/comments/1")
+      .expect(204)
+      .then((response) => {
+        // Check response has no content
+        expect(response.body).toEqual({});
+
+        // Verify comment is actually deleted from database
+        return db.query("SELECT * FROM comments WHERE comment_id = 1");
+      })
+      .then(({ rows }) => {
+        expect(rows.length).toBe(0);
+      });
+  });
+
+  test("404: Returns appropriate error when comment_id does not exist", () => {
+    return request(app)
+      .delete("/api/comments/999")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Comment not found");
+      });
+  });
+
+  test("400: Returns appropriate error when comment_id is invalid", () => {
+    return request(app)
+      .delete("/api/comments/not-a-number")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid comment ID");
+      });
+  });
+
+  test("404: Confirms other comments remain unchanged after deletion", () => {
+    return request(app)
+      .delete("/api/comments/1")
+      .expect(204)
+      .then(() => {
+        // Run query to check other comments exist after comment deletion
+        return db.query("SELECT * FROM comments WHERE comment_id != 1;");
+      })
+      .then(({ rows }) => {
+        // Checks that all other comments were collected and not only deleted comment
+        expect(rows.length).toBeGreaterThan(0);
       });
   });
 });
