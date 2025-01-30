@@ -8,6 +8,7 @@ const {
   getArticleIDCommentsEndpoint,
   postCommentToArticleEndpoint,
   patchArticleIDEndpoint,
+  deleteCommentEndpoint,
 } = require("./Controllers/controllers");
 
 const app = express(); // Creating  an instance of express to serve data from.
@@ -28,6 +29,7 @@ app.post("/api/articles/:article_id/comments", postCommentToArticleEndpoint);
 app.patch("/api/articles/:article_id", patchArticleIDEndpoint);
 
 // DELETE REQUESTS
+app.delete("/api/comments/:comment_id", deleteCommentEndpoint);
 
 // TO ADD:
 // app.get("/api/users", getUsersEndpoint);
@@ -36,7 +38,6 @@ app.patch("/api/articles/:article_id", patchArticleIDEndpoint);
 //   "/api/articles/:article_id (commentcount)",
 //   getArticleIDCommentCountEndpoint
 // );
-// app.delete("/api/comments/:comment_id", deleteCommentEndpoint);
 
 // This handler matches any endpoint req/ type of req - below endpoints to prevent error overriding  handling
 // Correct syntax:
@@ -46,7 +47,7 @@ app.all("*", (req, res) => {
 
 // Error handling middlewares
 app.use((err, req, res, next) => {
-  // console.log(err);
+  console.log(err);
   if (err.status && err.message) {
     // Takes in the error status + appropriate message for res status
     res.status(err.status).send({ message: err.message });

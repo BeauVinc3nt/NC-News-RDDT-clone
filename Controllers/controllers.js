@@ -7,6 +7,7 @@ const {
 const {
   fetchCommentsByArticleID,
   insertCommentToArticleID,
+  deleteCommentFromArticleID,
 } = require("../Models/comments.model");
 const endpointsJson = require("../endpoints.json");
 
@@ -106,6 +107,26 @@ function patchArticleIDEndpoint(req, res, next) {
     })
     .catch(next);
 }
+
+function deleteCommentEndpoint(req, res, next) {
+  const { comment_id } = req.params;
+
+  // Checking comment ID is in correct format (number)
+  if (!Number.isInteger(Number(comment_id))) {
+    return res.status(400).send({ message: "Invalid comment ID" }); // Output err status msg
+  }
+
+  // ONce comment ID exists => pass into delete func.
+  deleteCommentFromArticleID(comment_id)
+    .then((deletedComment) => {
+      if (!deletedComment) {
+        return res.status(404).send({ message: "Comment not found" });
+      }
+      res.status(204).send({ message: "Comment deleted" }); // Successfully deletes => return delete message
+    })
+    .catch(next); // Error handling dealt with in middleware (in app)
+}
+
 // Exporting controller funcs for APIs
 module.exports = {
   getEndpoints,
@@ -115,4 +136,5 @@ module.exports = {
   getArticleIDCommentsEndpoint,
   postCommentToArticleEndpoint,
   patchArticleIDEndpoint,
+  deleteCommentEndpoint,
 };

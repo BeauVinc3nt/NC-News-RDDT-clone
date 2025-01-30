@@ -21,6 +21,7 @@ function fetchCommentsByArticleID(article_id) {
       return articleComment.rows; // Returns the article comments
     });
 }
+
 function insertCommentToArticleID(article_id, username, body) {
   if (!body) {
     return Promise.reject({
@@ -54,4 +55,23 @@ function insertCommentToArticleID(article_id, username, body) {
       return articleComment.rows[0]; // Return created comment
     });
 }
-module.exports = { fetchCommentsByArticleID, insertCommentToArticleID };
+
+function deleteCommentFromArticleID(comment_id) {
+  return db
+    .query("DELETE FROM comments WHERE comment_id = $1 RETURNING *", [
+      comment_id, // Deleting the matching comment id to the vallue passed in.
+    ])
+    .then(({ rows }) => {
+      // Destrucuring rows into an obj with arr of rows.
+      if (rows.length === 0) {
+        return null; // Sends 404 err
+      }
+      return rows[0]; // Return the deleted comment
+    });
+}
+
+module.exports = {
+  fetchCommentsByArticleID,
+  insertCommentToArticleID,
+  deleteCommentFromArticleID,
+};
