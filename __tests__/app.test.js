@@ -4,6 +4,7 @@ const db = require("../db/connection.js");
 const testData = require("../db/data/test-data/index.js"); // Grabbing data from index.js storing all data.
 const app = require("../app.js");
 const request = require("supertest"); // Enables testing
+// const { fetchAllUsers } = require("../Models/users.model.js");
 
 // Before each test: seed the database with the collective data from index
 beforeEach(() => {
@@ -336,6 +337,64 @@ describe("DELETE /api/comments/:comment_id", () => {
       .then(({ rows }) => {
         // Checks that all other comments were collected and not only deleted comment
         expect(rows.length).toBeGreaterThan(0);
+      });
+  });
+});
+describe("GET /api/users", () => {
+  test("200: responds with an array of user objects with correct properties", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body }) => {
+        const { users } = body; // Checking users format
+        expect(Array.isArray(users)).toBe(true);
+        expect(users.length).toBeGreaterThan(0);
+
+        users.forEach((user) => {
+          // Checking user obj properties match
+          expect(user).toMatchObject({
+            username: expect.any(String),
+            name: expect.any(String),
+            avatar_url: expect.any(String),
+          });
+        });
+      });
+  });
+  // Sorting usernames in alphabetical order
+  test("Checks users are sorted alphabetically by username", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body }) => {
+        const { users } = body;
+        const usernames = users.map((user) => user.username); // Creating new arr for format
+        expect(usernames).toEqual([...usernames].sort());
+      });
+  });
+  // Returning error when incorrect endpoint attempts to make request
+  test("404: returns appropriate error for non-existent endpoint", () => {
+    return request(app)
+      .get("/api/incorrectendpoint") // Random endpoint
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.error).toBe("Endpoint not found");
+      });
+  });
+});
+describe("200: Return an empty arr when there are no users on the db", () => {
+  beforeEach(() => {
+    return db.query(`
+      DELETE FROM comments;
+      DELETE FROM articles;
+      DELETE FROM users;
+    `); // PREV ERROR: foreign key constraint from old query using: DELETE FROM users
+  });
+  test("200: responds with empty arr when the db has no users", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.users).toEqual([]); // After db query has removed users => check empty arr is given
       });
   });
 });

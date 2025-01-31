@@ -9,6 +9,8 @@ const {
   insertCommentToArticleID,
   deleteCommentFromArticleID,
 } = require("../Models/comments.model");
+const { fetchAllUsers } = require("../Models/users.model");
+
 const endpointsJson = require("../endpoints.json");
 
 // Get hold of all controllers
@@ -127,6 +129,14 @@ function deleteCommentEndpoint(req, res, next) {
     .catch(next); // Error handling dealt with in middleware (in app)
 }
 
+function getUsersEndpoint(req, res, next) {
+  fetchAllUsers()
+    .then((users) => {
+      res.status(200).send({ users }); // On success => send all users
+    })
+    .catch(next);
+}
+
 // Exporting controller funcs for APIs
 module.exports = {
   getEndpoints,
@@ -137,4 +147,5 @@ module.exports = {
   postCommentToArticleEndpoint,
   patchArticleIDEndpoint,
   deleteCommentEndpoint,
+  getUsersEndpoint,
 };
