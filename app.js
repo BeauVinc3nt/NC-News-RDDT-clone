@@ -9,6 +9,7 @@ const {
   postCommentToArticleEndpoint,
   patchArticleIDEndpoint,
   deleteCommentEndpoint,
+  getUsersEndpoint,
 } = require("./Controllers/controllers");
 
 const app = express(); // Creating  an instance of express to serve data from.
@@ -21,6 +22,7 @@ app.get("/api/topics", getTopicsEndpoint);
 app.get("/api/articles/:article_id", getArticleIDEndpoint);
 app.get("/api/articles", getAllArticlesEndpoint);
 app.get("/api/articles/:article_id/comments", getArticleIDCommentsEndpoint);
+app.get("/api/users", getUsersEndpoint);
 
 // POST REQUESTS
 app.post("/api/articles/:article_id/comments", postCommentToArticleEndpoint);
@@ -32,7 +34,7 @@ app.patch("/api/articles/:article_id", patchArticleIDEndpoint);
 app.delete("/api/comments/:comment_id", deleteCommentEndpoint);
 
 // TO ADD:
-// app.get("/api/users", getUsersEndpoint);
+
 // app.get("/api/articles (queries)", getArticleByQuerysEndpoint);
 // app.get(
 //   "/api/articles/:article_id (commentcount)",
@@ -58,3 +60,5 @@ app.use((err, req, res, next) => {
   }
 });
 module.exports = app;
+
+// Got up to task 10.
