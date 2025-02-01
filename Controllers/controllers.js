@@ -28,17 +28,19 @@ function getTopicsEndpoint(req, res, next) {
 }
 
 function getArticlesAndQuerysEndpoint(req, res, next) {
-  const { sort_by, order } = req.query;
+  const { topic, sort_by, order } = req.query;
 
-  // Checking if endpoint has query params: if sort_by & order queries don't exist (no query) => fetchAllArticles.
-  if (!sort_by && !order) {
-    fetchAllArticles(sort_by, order)
+  // Checking if endpoint has query params: if no queries are given=> call fetchAllArticles.
+  if (!sort_by && !order && !topic) {
+    fetchAllArticles()
       .then((articles) => {
         res.status(200).send({ articles });
       })
       .catch(next); // Error handling
   } else {
-    fetchAllArticlesByQuery(sort_by, order)
+    // console.log("Test request", { sort_by, order, topic });
+
+    fetchAllArticlesByQuery(sort_by, order, topic)
       .then((articles) => {
         res.status(200).send({ articles });
       })
@@ -141,7 +143,7 @@ function deleteCommentEndpoint(req, res, next) {
     .catch(next); // Error handling dealt with in middleware (in app)
 }
 
-function getUsersEndpoint(req, res, next) {
+function getAllUsersEndpoint(req, res, next) {
   fetchAllUsers()
     .then((users) => {
       res.status(200).send({ users }); // On success => send all users
@@ -159,5 +161,5 @@ module.exports = {
   postCommentToArticleEndpoint,
   patchArticleIDEndpoint,
   deleteCommentEndpoint,
-  getUsersEndpoint,
+  getAllUsersEndpoint,
 };
