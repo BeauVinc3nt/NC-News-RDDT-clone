@@ -3,6 +3,7 @@ const {
   fetchArticleByID,
   fetchAllArticles,
   updateArticleVoteCount,
+  fetchAllArticlesByQuery,
 } = require("../Models/articles.model");
 const {
   fetchCommentsByArticleID,
@@ -26,12 +27,23 @@ function getTopicsEndpoint(req, res, next) {
     .catch(next);
 }
 
-function getAllArticlesEndpoint(req, res, next) {
-  fetchAllArticles()
-    .then((articles) => {
-      res.status(200).send({ articles });
-    })
-    .catch(next);
+function getArticlesAndQuerysEndpoint(req, res, next) {
+  const { sort_by, order } = req.query;
+
+  // Checking if endpoint has query params: if sort_by & order queries don't exist (no query) => fetchAllArticles.
+  if (!sort_by && !order) {
+    fetchAllArticles(sort_by, order)
+      .then((articles) => {
+        res.status(200).send({ articles });
+      })
+      .catch(next); // Error handling
+  } else {
+    fetchAllArticlesByQuery(sort_by, order)
+      .then((articles) => {
+        res.status(200).send({ articles });
+      })
+      .catch(next);
+  }
 }
 
 function getArticleIDEndpoint(req, res, next) {
@@ -114,17 +126,17 @@ function deleteCommentEndpoint(req, res, next) {
   const { comment_id } = req.params;
 
   // Checking comment ID is in correct format (number)
-  if (!Number.isInteger(Number(comment_id))) {
+  if (isNaN(comment_id)) {
     return res.status(400).send({ message: "Invalid comment ID" }); // Output err status msg
   }
 
-  // ONce comment ID exists => pass into delete func.
+  // Once comment ID exists => pass into delete func.
   deleteCommentFromArticleID(comment_id)
     .then((deletedComment) => {
       if (!deletedComment) {
         return res.status(404).send({ message: "Comment not found" });
       }
-      res.status(204).send({ message: "Comment deleted" }); // Successfully deletes => return delete message
+      res.status(204).send({ message: "Comment deleted" }); // Issue caused when running tests if response was not sent (request reaches timeout if client 'send' response not sent)
     })
     .catch(next); // Error handling dealt with in middleware (in app)
 }
@@ -142,7 +154,7 @@ module.exports = {
   getEndpoints,
   getTopicsEndpoint,
   getArticleIDEndpoint,
-  getAllArticlesEndpoint,
+  getArticlesAndQuerysEndpoint,
   getArticleIDCommentsEndpoint,
   postCommentToArticleEndpoint,
   patchArticleIDEndpoint,

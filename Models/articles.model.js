@@ -63,5 +63,69 @@ function updateArticleVoteCount(article_id, inc_votes) {
     });
 }
 
+// Setting queries
+function fetchAllArticlesByQuery(sort_by = "created_at", order = "desc") {
+  const validSortingQueries = [
+    // Specifying accepted query params for sorting in db (SQL INJECTION PREVENTION)
+    "created_at",
+    "article_id", // Array of article table keys:
+    "title",
+    "topic",
+    "author",
+    "votes",
+    "comment_count",
+  ];
+  // If a query is given outside of specified params => reject promise
+  if (!validSortingQueries.includes(sort_by)) {
+    return Promise.reject({
+      status: 400,
+      message: `Invalid sort column query: ${sort_by}`,
+    });
+  }
+  // Specifying accepted order params (ascending or descending)
+  const validOrders = ["asc", "desc"];
+
+  // Convert order query to lowercase to run sql query
+  if (!validOrders.includes(order.toLowerCase())) {
+    return Promise.reject({
+      status: 400,
+      message: `Invalid order query: ${order}. Order can only be 'asc' or 'desc'.`,
+    });
+  }
+
+  // If sort by isn't comment count => set to articles to sort
+  const sortColumn =
+    sort_by === "comment_count" ? "comment_count" : `articles.${sort_by}`;
+
+  return db
+    .query(
+      `SELECT 
+        articles.author,
+        articles.title,
+        articles.article_id,
+        articles.topic,
+        articles.created_at,
+        articles.votes,
+        articles.article_img_url,
+        COUNT(comments.comment_id) AS comment_count
+      FROM articles
+      LEFT JOIN comments ON articles.article_id = comments.article_id
+      GROUP BY articles.article_id
+      ORDER BY ${sortColumn} ${order.toUpperCase()};`
+    ) // Converting from arr check for lower case => SQL query syntax
+
+    .then(({ rows }) => {
+      return rows.map((article) => ({
+        ...article,
+        comment_count: Number(article.comment_count), // Convert comment count to numr
+      }));
+    });
+}
+
 // Export funcs to controller
-module.exports = { fetchArticleByID, fetchAllArticles, updateArticleVoteCount };
+module.exports = {
+  fetchArticleByID,
+  fetchAllArticles,
+  updateArticleVoteCount,
+  fetchAllArticlesByQuery,
+};
