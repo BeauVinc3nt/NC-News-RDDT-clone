@@ -341,7 +341,7 @@ describe("DELETE /api/comments/:comment_id", () => {
   });
 });
 describe("GET /api/users", () => {
-  test("200: responds with an array of user objects with correct properties", () => {
+  test("200: Responds with an array of user objects with correct properties", () => {
     return request(app)
       .get("/api/users")
       .expect(200)
@@ -372,7 +372,7 @@ describe("GET /api/users", () => {
       });
   });
   // Returning error when incorrect endpoint attempts to make request
-  test("404: returns appropriate error for non-existent endpoint", () => {
+  test("404: Returns appropriate error for non-existent endpoint", () => {
     return request(app)
       .get("/api/incorrectendpoint") // Random endpoint
       .expect(404)
@@ -389,12 +389,53 @@ describe("200: Return an empty arr when there are no users on the db", () => {
       DELETE FROM users;
     `); // PREV ERROR: foreign key constraint from old query using: DELETE FROM users
   });
-  test("200: responds with empty arr when the db has no users", () => {
+  test("200: Responds with empty arr when the db has no users", () => {
     return request(app)
       .get("/api/users")
       .expect(200)
       .then(({ body }) => {
         expect(body.users).toEqual([]); // After db query has removed users => check empty arr is given
+      });
+  });
+});
+describe("GET /api/articles (sorting queries)", () => {
+  test("200: Returns articles sorted by created_at (default)", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body }) => {
+        // console.log(body); // USED FOR DEBUGGING
+        expect(body.articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("200: Returns articles sorted by votes in ascending order", () => {
+    return request(app)
+      .get("/api/articles?sort_by=votes&order=asc")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toBeSortedBy("votes", { ascending: true });
+      });
+  });
+
+  test("400: Responds with an error when given an invalid sort column", () => {
+    return request(app)
+      .get("/api/articles?sort_by=not_a_column")
+      .expect(400)
+      .then(({ body }) => {
+        // console.log(body);
+        expect(body.message).toBe(`Invalid sort column query: not_a_column`); // Changed ${body.sort_by} => not_a_column as the API returns this. Initial value was undefined causing err
+      });
+  });
+
+  test("400: Responds with an error when given an invalid order query", () => {
+    return request(app)
+      .get("/api/articles?order=invalidOrder")
+      .expect(400)
+      .then(({ body }) => {
+        // console.log(body);
+        expect(body.message).toBe(
+          `Invalid order query: invalidOrder. Order can only be 'asc' or 'desc'.` // Changed ${body.order} => invalidOrder as the API returns this. Initial value was undefined causing err
+        );
       });
   });
 });
