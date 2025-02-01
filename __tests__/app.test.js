@@ -438,4 +438,64 @@ describe("GET /api/articles (sorting queries)", () => {
         );
       });
   });
+
+  test("200: Returns an empty array when a valid topic has no articles", () => {
+    return request(app)
+      .get("/api/articles?topic=paper")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles).toEqual([]); //No articles under 'paper' topic => return empty arr
+      });
+  });
+
+  // Testing each of the valid topics work:
+  test("200: Returns articles filtered by a valid topic (mitch)", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch")
+      .expect(200)
+      .then(({ body }) => {
+        console.log(body);
+        expect(body.articles).toBeInstanceOf(Array);
+        expect(body.articles.length).toBeGreaterThan(0);
+        body.articles.forEach((article) => {
+          expect(article.topic).toBe("mitch");
+        });
+      });
+  });
+
+  test("200: Returns articles filtered by a valid topic (cats)", () => {
+    return request(app)
+      .get("/api/articles?topic=cats")
+      .expect(200)
+      .then(({ body }) => {
+        console.log(body);
+        expect(body.articles).toBeInstanceOf(Array);
+        expect(body.articles.length).toBeGreaterThan(0);
+        body.articles.forEach((article) => {
+          expect(article.topic).toBe("cats");
+        });
+      });
+  });
+
+  test("200: Returns articles filtered by a valid topic (paper)", () => {
+    return request(app)
+      .get("/api/articles?topic=paper")
+      .expect(200)
+      .then(({ body }) => {
+        console.log(body);
+        expect(body.articles).toBeInstanceOf(Array);
+        body.articles.forEach((article) => {
+          expect(article.topic).toBe("paper");
+        });
+      });
+  });
+
+  test("404: Returns an error when passed a non-existent topic", () => {
+    return request(app)
+      .get("/api/articles?topic=topic_that_doesnt_exist") // When unknown topic query given => return 404
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Topic not found");
+      });
+  });
 });

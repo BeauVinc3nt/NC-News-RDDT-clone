@@ -8,7 +8,7 @@ const {
   postCommentToArticleEndpoint,
   patchArticleIDEndpoint,
   deleteCommentEndpoint,
-  getUsersEndpoint,
+  getAllUsersEndpoint,
   getArticlesAndQuerysEndpoint,
 } = require("./Controllers/controllers");
 
@@ -22,7 +22,7 @@ app.get("/api/topics", getTopicsEndpoint);
 app.get("/api/articles/:article_id", getArticleIDEndpoint);
 app.get("/api/articles", getArticlesAndQuerysEndpoint); // Combining both fetchAllArticles and the queries into one endpoint to do checks for if "sort_by" and "order" instances exist.
 app.get("/api/articles/:article_id/comments", getArticleIDCommentsEndpoint);
-app.get("/api/users", getUsersEndpoint);
+app.get("/api/users", getAllUsersEndpoint);
 
 // POST REQUESTS
 app.post("/api/articles/:article_id/comments", postCommentToArticleEndpoint);

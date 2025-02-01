@@ -64,7 +64,11 @@ function updateArticleVoteCount(article_id, inc_votes) {
 }
 
 // Setting queries
-function fetchAllArticlesByQuery(sort_by = "created_at", order = "desc") {
+function fetchAllArticlesByQuery(
+  sort_by = "created_at",
+  order = "desc",
+  topic = null
+) {
   const validSortingQueries = [
     // Specifying accepted query params for sorting in db (SQL INJECTION PREVENTION)
     "created_at",
@@ -97,29 +101,43 @@ function fetchAllArticlesByQuery(sort_by = "created_at", order = "desc") {
   const sortColumn =
     sort_by === "comment_count" ? "comment_count" : `articles.${sort_by}`;
 
-  return db
-    .query(
-      `SELECT 
-        articles.author,
-        articles.title,
-        articles.article_id,
-        articles.topic,
-        articles.created_at,
-        articles.votes,
-        articles.article_img_url,
-        COUNT(comments.comment_id) AS comment_count
-      FROM articles
-      LEFT JOIN comments ON articles.article_id = comments.article_id
-      GROUP BY articles.article_id
-      ORDER BY ${sortColumn} ${order.toUpperCase()};`
-    ) // Converting from arr check for lower case => SQL query syntax
+  // Creating SQL query to append if queries increase (defaulting to fething all articles)
+  let queryString = `SELECT articles.*, COUNT(comments.comment_id) AS comment_count
+  FROM articles
+  LEFT JOIN comments ON articles.article_id = comments.article_id`;
 
-    .then(({ rows }) => {
-      return rows.map((article) => ({
-        ...article,
-        comment_count: Number(article.comment_count), // Convert comment count to numr
-      }));
-    });
+  // Storing query params for positional placeholders in seperate arr. If query => push query to arr
+  const givenQueryParams = [];
+
+  // Checking for topic query param
+  if (topic) {
+    queryString += " WHERE articles.topic = $1"; // PREVENTING SQL INJECTION USING ALIAS
+    givenQueryParams.push(topic);
+  }
+
+  queryString += `
+    GROUP BY articles.article_id
+    ORDER BY ${sortColumn} ${order.toUpperCase()}; 
+  `; // Converting from arr check for lower case => SQL query syntax
+
+  // If no topc queries given => no positional placeholder ( [] )
+  return db.query(queryString, givenQueryParams).then(({ rows }) => {
+    if (topic && rows.length === 0) {
+      // Testing checked topic is in database topic table
+      return db
+        .query("SELECT * FROM topics WHERE slug = $1;", [topic])
+        .then(({ rows: topicRows }) => {
+          if (topicRows.length === 0) {
+            return Promise.reject({ status: 404, message: "Topic not found" });
+          }
+          return []; // Return empty arr if topic exists but has no articles
+        });
+    }
+    return rows.map((article) => ({
+      ...article,
+      comment_count: Number(article.comment_count), // Convert comment count to num
+    }));
+  });
 }
 
 // Export funcs to controller
