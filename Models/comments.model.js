@@ -30,6 +30,8 @@ function insertCommentToArticleID(article_id, username, body) {
     });
   }
 
+  console.log(" Inserting comment for article_id:", article_id, "by", username);
+
   return db
     .query(`SELECT * FROM articles WHERE article_id =$1`, [article_id])
     .then((foundArticle) => {
@@ -52,26 +54,47 @@ function insertCommentToArticleID(article_id, username, body) {
       );
     })
     .then((articleComment) => {
+      // TESTING log article comment.rows[0] to check if comment was added
       return articleComment.rows[0]; // Return created comment
     });
 }
 
 function deleteCommentFromArticleID(comment_id) {
-  return db
-    .query("DELETE FROM comments WHERE comment_id = $1 RETURNING *", [
-      comment_id, // Deleting the matching comment id to the vallue passed in.
-    ])
-    .then(({ rows }) => {
+  return (
+    db
+      .query(
+        `DELETE FROM comments WHERE comment_id = $1 RETURNING article_id`,
+        [
+          comment_id, // Deleting the matching comment id to the vallue passed in.
+        ]
+      )
       // Destrucuring rows into an obj with arr of rows.
-      if (rows.length === 0) {
-        return null; // Sends 404 err
-      }
-      return rows[0]; // Return the deleted comment
+      .then(({ rows }) => {
+        if (rows.length === 0) {
+          return null; // Sends 404 err
+        }
+
+        return rows[0]; // Return the deleted comment
+      })
+  );
+}
+
+function fetchUpdatedCommentCount(article_id) {
+  return db
+    .query(
+      `SELECT COUNT(*) AS comment_count FROM comments WHERE article_id = $1;`,
+      [article_id]
+    )
+    .then(({ rows }) => {
+      return Number(rows[0].comment_count); // Convert count to number
     });
 }
+
+// Need to add update function as the new comment count isn't being updated.
 
 module.exports = {
   fetchCommentsByArticleID,
   insertCommentToArticleID,
   deleteCommentFromArticleID,
+  fetchUpdatedCommentCount,
 };

@@ -8,7 +8,7 @@ const request = require("supertest"); // Enables testing
 
 // Before each test: seed the database with the collective data from index
 beforeEach(() => {
-  return seed(testData);
+  return seed(testData); // Re-seed the database for each test (resetting db state for testing)
 });
 
 // After each test is executed: close the db connection
@@ -499,3 +499,82 @@ describe("GET /api/articles (sorting queries)", () => {
       });
   });
 });
+describe("GET api/articles/:article_id (comment count)", () => {
+  // Testing the comment count is precise for each of the articles.
+  test("200: Returns a comment count for a given article", () => {
+    return request(app)
+      .get("/api/articles/1")
+      .expect(200)
+      .then(({ body }) => {
+        const commentCount = Number(body.article.comment_count); // In testing, set commentCount to a number as it is intially defaulted to a "string"
+        expect(body.article).toHaveProperty("comment_count"); // Checking that comment count property is in articles db
+        expect(commentCount).toBeGreaterThanOrEqual(0); // Checking that comment count cannot be negative
+      });
+  });
+  test("200: Returns article with comment_count of 0 when article has no comments", () => {
+    return request(app)
+      .get("/api/articles/2") // Article 2 has no comments
+      .expect(200)
+      .then(({ body }) => {
+        const commentCount = Number(body.article.comment_count);
+        console.log(body.article_id);
+        expect(body.article.article_id).toBe(2);
+        expect(commentCount).toBe(0);
+      });
+  });
+  // TESTING COMMENT COUNT UPDATES AFTER POST + DELETE COMMENTS
+  test("201: Increases comment_count after posting a new comment", () => {
+    return request(app)
+      .get("/api/articles/1")
+      .then(({ body }) => {
+        const initialCommentCount = Number(body.article.comment_count); // Setting initial comment count before POST req
+
+        return request(app)
+          .post("/api/articles/1/comments") // Sending a comment via post to increment 'comment_count'
+          .send({ username: "butter_bridge", body: "New comment" })
+          .expect(201)
+          .then(() => {
+            return request(app).get("/api/articles/1"); // Fetching the article
+          })
+          .then(({ body }) => {
+            console.log("Initial comment count:", initialCommentCount);
+            console.log(
+              "Received comment count after POST:",
+              body.article.comment_count
+            );
+            const updatedCommentCount = Number(body.article.comment_count);
+            expect(updatedCommentCount).toBe(initialCommentCount + 1); // Check's that comment_count has incremented by the n.o post reqs made (1)
+          });
+      });
+  });
+
+  test("204: Decreases comment_count after deleting a comment", () => {
+    return request(app)
+      .get("/api/articles/3")
+      .then(({ body }) => {
+        const initialCommentCount = Number(body.article.comment_count);
+        console.log("Initial comment count:", initialCommentCount); // Add a log here
+
+        return request(app)
+          .delete("/api/comments/10") // Deleting comment with ID 10 via delete to decrement 'comment_count'
+          .expect(204)
+          .then(() => {
+            return request(app).get("/api/articles/3");
+          })
+          .then(({ body }) => {
+            const updatedCommentCount = Number(body.article.comment_count);
+            console.log("Updated comment count:", updatedCommentCount); // Add a log here
+            expect(updatedCommentCount).toBe(initialCommentCount - 1); // Check's that comment_count has decremented by the n.o delete reqs made (1)
+          });
+      });
+  });
+});
+
+// TASK LINK: https://l2c.northcoders.com/courses/be/nc-news#sectionId=Task_14,step=intro
+// Resolve final tests for comment count issues for last 2 tests
+// Added production contents nearly ready to deploy, just need to commit changes to 'main' branch with no errors as husky isn't letting me commit.
+
+// User stories (endpoint)
+// Make component tree diagram for every page (managing states across the sites)
+// Ig shared state
+// Stick to a singular font/ font sizing
