@@ -1,12 +1,10 @@
 // Setting up connection pooling for dealing with multiple requests.
 const { config } = require("dotenv");
 const { Pool } = require("pg");
-const ENV = process.env.NODE_ENV || "development"; //
+const ENV = process.env.NODE_ENV || "production"; //
 // const ENV = process.env.NODE_ENV || "development"; // Change to "test" when testing endpoints.
 
-require("dotenv").config({
-  path: `${__dirname}/../.env.${ENV}`,
-});
+config({ path: `${__dirname}/../.env.${ENV}` });
 
 // If the PGDATABASE (locally hosting) && Hosted DB on Supabase isn't set => throw err
 if (!process.env.PGDATABASE && !process.env.DATABASE_URL) {
