@@ -9,6 +9,7 @@ const {
   fetchCommentsByArticleID,
   insertCommentToArticleID,
   deleteCommentFromArticleID,
+  fetchUpdatedCommentCount,
 } = require("../Models/comments.model");
 const { fetchAllUsers } = require("../Models/users.model");
 
@@ -77,17 +78,15 @@ function getArticleIDCommentsEndpoint(req, res, next) {
 function postCommentToArticleEndpoint(req, res, next) {
   const { article_id } = req.params;
   const { username, body } = req.body;
+
+  // Checking username & body exist => reject
+  if (!username || !body) {
+    return res
+      .status(400)
+      .send({ message: "Missing fields: username and body are required!" });
+  }
   // If params are given => send comment obj
   insertCommentToArticleID(article_id, username, body)
-    .then((article) => {
-      // Checking username & body exist => reject
-      if (!username || !body) {
-        return res
-          .status(400)
-          .send({ message: "Missing fields username and body required!" });
-      }
-      return insertCommentToArticleID(article_id, username, body);
-    })
     .then((comment) => {
       res.status(201).send({ comment });
     })
@@ -138,9 +137,14 @@ function deleteCommentEndpoint(req, res, next) {
       if (!deletedComment) {
         return res.status(404).send({ message: "Comment not found" });
       }
-      res.status(204).send({ message: "Comment deleted" }); // Issue caused when running tests if response was not sent (request reaches timeout if client 'send' response not sent)
+
+      const { article_id } = deletedComment;
+
+      return fetchUpdatedCommentCount(article_id).then((newCommentCount) => {
+        res.status(204).send({});
+      });
     })
-    .catch(next); // Error handling dealt with in middleware (in app)
+    .catch(next);
 }
 
 function getAllUsersEndpoint(req, res, next) {

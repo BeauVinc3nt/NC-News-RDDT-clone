@@ -33,13 +33,6 @@ app.patch("/api/articles/:article_id", patchArticleIDEndpoint);
 // DELETE REQUESTS
 app.delete("/api/comments/:comment_id", deleteCommentEndpoint);
 
-// TO ADD:
-
-// app.get(
-//   "/api/articles/:article_id (commentcount)",
-//   getArticleIDCommentCountEndpoint
-// );
-
 // This handler matches any endpoint req/ type of req - below endpoints to prevent error overriding  handling
 // Correct syntax:
 app.all("*", (req, res) => {

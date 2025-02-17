@@ -2,13 +2,22 @@ const db = require("../db/connection");
 
 function fetchArticleByID(article_id) {
   return db
-    .query("SELECT * FROM articles WHERE article_id = $1", [article_id])
+    .query(
+      // Selecting all cols from articles table, counting the n.o comments & joining a comments column to the table where there are matched rows to its article
+      `SELECT articles.*,
+       COUNT(comments.comment_id) AS comment_count
+       FROM articles
+       LEFT JOIN comments ON articles.article_id = comments.article_id
+       WHERE articles.article_id = $1
+       GROUP BY articles.article_id`,
+      [article_id]
+    )
     .then((result) => {
       if (result.rows.length === 0) {
         //  Prev error: if rejected promise isn't correctly passed into error-handling mw => return 500 error when 404 expected.s
         return Promise.reject({ status: 404, message: "Article not found" });
       }
-      return result.rows[0]; // Returns single article obj to send array \
+      return result.rows[0]; // Returns single article obj to send array
     })
     .catch((err) => {
       return Promise.reject(err); // Passing error back to controller
@@ -16,7 +25,7 @@ function fetchArticleByID(article_id) {
 }
 
 function fetchAllArticles() {
-  // Selecting and joining comments to articles table
+  // Selecting and joining the comments with their associated article (article_id) & passing the comment count
   return db
     .query(
       `SELECT 
@@ -29,7 +38,7 @@ function fetchAllArticles() {
       articles.article_img_url,
       COUNT(comments.comment_id) AS comment_count
     FROM articles
-    LEFT JOIN comments
+    LEFT JOIN comments  
     ON articles.article_id = comments.article_id
     GROUP BY articles.article_id
     ORDER BY articles.created_at DESC;`
@@ -67,7 +76,8 @@ function updateArticleVoteCount(article_id, inc_votes) {
 function fetchAllArticlesByQuery(
   sort_by = "created_at",
   order = "desc",
-  topic = null
+  topic = null,
+  totalComments = "comment_count"
 ) {
   const validSortingQueries = [
     // Specifying accepted query params for sorting in db (SQL INJECTION PREVENTION)
