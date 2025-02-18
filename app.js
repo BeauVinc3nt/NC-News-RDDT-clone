@@ -1,5 +1,6 @@
 // Requiring in endpoint funcs from controller
 const express = require("express");
+const cors = require("cors");
 const {
   getEndpoints,
   getTopicsEndpoint,
@@ -13,6 +14,7 @@ const {
 } = require("./Controllers/controllers");
 
 const app = express(); // Creating  an instance of express to serve data from.
+app.use(cors());
 app.use(express.json()); // Used to parse requests
 
 // Forming url using endpoints + funcs.
