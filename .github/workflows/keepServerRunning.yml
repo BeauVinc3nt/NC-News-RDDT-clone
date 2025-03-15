@@ -2,16 +2,14 @@ name: Keep Supabase server running with API reqs
 
 on:
   schedule:
-    - cron: "*/15 * * * *"  # Runs every 15 minutes
-  workflow_dispatch: {}  # Allows manual triggering 
+    - cron: "*/15 * * * *" # Runs every 15 minutes
+  workflow_dispatch: {} # Allows manual triggering
 
 jobs:
   ping-supabase:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Supabase API
-      run: |
-        curl -X GET "https://blmejfunscztaejacqql.supabase.co/rest/v1/health" \
-        -H "apikey: ${{ secrets.SUPABASE_API_KEY }}"  # Making get req to avoid project from going idle
-            
-            
+        run: |
+          curl -X GET "https://blmejfunscztaejacqql.supabase.co/rest/v1/health" \
+          -H "apikey: ${{ secrets.SUPABASE_API_KEY }}" # Making get req to avoid project from going idle
