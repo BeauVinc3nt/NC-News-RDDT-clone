@@ -6,7 +6,7 @@ Live project demo link: https://beaunews.netlify.app/
 
 This project is a reddit clone built from the ground up - from server side all the way to a consistent front-end.
 
-The server is built via express, tested via supertest + Jest and hosted on Netlify with the database hosted via Supabase ().
+The server is built via express, tested via supertest + Jest and hosted on Netlify (https://www.netlify.com/) with the database hosted via Supabase (https://supabase.com/).
 
 When switching between testing, development and production, different .env files were used to test the data on a variety of appropriate databases for simplicity.
 
