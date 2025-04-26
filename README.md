@@ -6,6 +6,8 @@ Live project demo link: https://beaunews.netlify.app/
 
 This project is a reddit clone built from the ground up - from server side all the way to a consistent front-end.
 
+For project demonstration purposes, I am running the project on a limited API request plan, where the project hosting will be paused once active requests aren't being made to the server (inactivity). To resolve this, I have ran some CRON jobs to maintain the server health, infrequently sending out a request every few hours in order to ensure the hosting is permanent in times where there is inactivity on the site.
+
 The server is built via express, tested via supertest + Jest and hosted on Netlify (https://www.netlify.com/) with the database hosted via Supabase (https://supabase.com/).
 
 When switching between testing, development and production, different .env files were used to test the data on a variety of appropriate databases for simplicity.
