@@ -9,7 +9,13 @@ jobs:
   ping-supabase:
     runs-on: ubuntu-latest
     steps:
+    # Request 1: Retrieving API health status (may be detected as lightweight bot req)
       - name: Ping Supabase API
         run: |
           curl -X GET "https://blmejfunscztaejacqql.supabase.co/rest/v1/health" \
           -H "apikey: ${{ secrets.SUPABASE_API_KEY }}" # Making get req to avoid project from going idle
+     # Request 2: Retrieving the articles table via GET req (mimics user traffic)
+      - name: Keep Supabase alive with real data request
+        run: |
+          curl -X GET "https://blmejfunscztaejacqql.supabase.co/rest/v1/articles?select=article_id&limit=1" \
+          -H "apikey: ${{ secrets.SUPABASE_API_KEY }}"
